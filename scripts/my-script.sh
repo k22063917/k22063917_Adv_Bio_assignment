@@ -2,7 +2,7 @@
 # Logon to Open Stack
 
 # Make a directory that I would conduct my assignment
-mkdir k22063917_Adv_Bioinformatics_Assignment
+mkdir ~/k22063917_Adv_Bioinformatics_Assignment
 
 # Getting and installing Conda
 # Download Miniconda3 latest version on Open Stack
