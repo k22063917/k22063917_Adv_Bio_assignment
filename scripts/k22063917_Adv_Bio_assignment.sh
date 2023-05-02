@@ -222,6 +222,9 @@ cd ~/annovar
 cd ~/annovar
 ./table_annovar.pl ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_hg19.avinput humandb/ -buildver hg19 -out ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_annotated -remove -protocol refGene,ensGene,clinvar_20180603,exac03,dbnsfp31a_interpro,avsnp142 -operation g,g,f,f,f,f -otherinfo -nastring .
 
+#cut the txt output of annovar to leave columns that contain information desired, such as exonic or information from dbSNP
+cut -f1,2,3,4,5,6,7,30 ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_annotated.hg19_multianno.txt > ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_annotated.hg19_multianno.txt.cut
+
 
 #snpEff
 
