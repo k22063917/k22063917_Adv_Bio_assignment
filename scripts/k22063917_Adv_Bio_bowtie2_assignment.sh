@@ -1,4 +1,5 @@
-#!/bin/bash #
+#!/bahs script using alternative aligner bowtie2
+
 
 # Getting and installing Conda
 # Download Miniconda3 latest version on Open Stack
@@ -28,9 +29,6 @@ conda install vcflib
 
 conda install snpEFF
 conda install snpSift
-
-
-
 
 #make the assignment directory just underneath the home
 mkdir ~/k22063917_Adv_Bioinformatics_Assignment
@@ -109,12 +107,14 @@ mkdir reference
 mv ~/k22063917_Adv_Bioinformatics_Assignment/data/hg19.fa.gz ~/k22063917_Adv_Bioinformatics_Assignment/data/reference/
 
 
+
 #index
-bwa index ~/k22063917_Adv_Bioinformatics_Assignment/data/reference/hg19.fa.gz
+zcat ~/k22063917_Adv_Bioinformatics_Assignment/data/reference/hg19.fa.gz ~/k22063917_Adv_Bioinformatics_Assignment/data/reference/hg19.fa
+bowtie2-build :~/k22063917_Adv_Bioinformatics_Assignment/data/reference/hg19.fa bowtie2_index
 
-mkdir ~/k22063917_Adv_Bioinformatics_Assignment/data/aligned_data
+bowtie2 -x bowtie2_index -f -1 ~/k22063917_Adv_Bioinformatics_Assignment/data/trimmed_fastq/NGS0001_trimmed_R_1P -2 ~/k22063917_Adv_Bioinformatics_Assignment/data/trimmed_fastq/NGS0001_trimmed_R_2P -S ~/k22063917_Adv_Bioinformatics_Assignment/data/aligned_data/NGS0001.sam
 
-bwa mem -t 4 -v 1 -R '@RG\tID:11V6WR.111.D1375ACXX.1.NGS0001\tSM:NGS0001\tPL:ILLUMINA\tLB:nextera-NGS0001-blood\tDT:2017-02-23\tPU:11V6WR1' -I 250,50  ~/k22063917_Adv_Bioinformatics_Assignment/data/reference/hg19.fa.gz ~/k22063917_Adv_Bioinformatics_Assignment/data/trimmed_fastq/NGS0001_trimmed_R_1P ~/k22063917_Adv_Bioinformatics_Assignment/data/trimmed_fastq/NGS0001_trimmed_R_2P > ~/k22063917_Adv_Bioinformatics_Assignment/data/aligned_data/NGS0001.sam
+
 
 # convert the sam file into bam format, sort it and generate an index using samtools
 
@@ -126,7 +126,9 @@ ls
 
 
 
+
 #mark duplicates using picard tools
+
 
 cd ~/k22063917_Adv_Bioinformatics_Assignment/data/aligned_data
 picard MarkDuplicates I=NGS0001_sorted.bam O=NGS0001_sorted_marked.bam M=marked_dup_metrics.txt
@@ -184,10 +186,9 @@ tabix -p vcf ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001.vcf.gz
 cp ~/k22063917_Adv_Bioinformatics_Assignment/data/annotation.bed ~/k22063917_Adv_Bioinformatics_Assignment/data/aligned_data/annotation.bed
 bedtools coverage -a ~/k22063917_Adv_Bioinformatics_Assignment/data/aligned_data/NGS0001_sorted_filtered.bam -b ~/k22063917_Adv_Bioinformatics_Assignment/data/aligned_data/annotation.bed
 
+#filter the variant call according to the quality score
 
-#vcffilter
-vcffilter -f "QUAL > 1 & QUAL / AO > 10 & SAF > 0 & SAR > 0 & RPR > 1 & RPL > 1" ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001.vcf.gz > ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered.vcfi
-
+vcffilter -f "QUAL > 1 & QUAL / AO > 10 & SAF > 0 & SAR > 0 & RPR > 1 & RPL > 1" ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001.vcf.gz > ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered.vcf
 
 #filter the vcf file according to the annodation bed
 
@@ -198,7 +199,10 @@ bgzip ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_hg19.vc
 tabix -p vcf ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_hg19.vcf.gz
 
 
+#download the annovar from website and upload it on ubuntu using filezilla
+
 #unpack it and set annovar on Open Stack
+
 cd ~
 tar -zxvf annovar.latest.tar.gz
 
@@ -222,15 +226,12 @@ cd ~/annovar
 cd ~/annovar
 ./table_annovar.pl ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_hg19.avinput humandb/ -buildver hg19 -out ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_annotated -remove -protocol refGene,ensGene,clinvar_20180603,exac03,dbnsfp31a_interpro,avsnp142 -operation g,g,f,f,f,f -otherinfo -nastring .
 
+cut -f1,2,3,4,5,6,7,30 ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_annotated.hg19_multianno.txt > ~/k22063917_Adv_Bioinformatics_Assignment/results/NGS0001_filtered_annotated.hg19_multianno.txt.cut
 
-#snpEff
 
 cd ~/k22063917_Adv_Bioinformatics_Assignment/results
 zcat NGS0001_filtered_hg19.vcf.gz > NGS0001_filtered_hg19.vcf
 
 snpEff ann -download GRCh37.75 -canon -onlyProtein NGS0001_filtered_hg19.vcf >  NGS0001_filtered_hg19.ann.canon.vcf
-
-
-
 
 
