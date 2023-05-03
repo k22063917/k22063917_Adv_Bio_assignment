@@ -26,7 +26,7 @@ conda install picard
 
 conda install vcflib
 
-conda install snpEFF
+conda install snpEff
 conda install snpSift
 
 

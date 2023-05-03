@@ -1,0 +1,373 @@
+---
+title: "Advanced Bioinformatics 2023 assessment"
+author: "k22063917/m2205707"
+date: "2023-04-18"
+output: html_document
+---
+
+#"Task: General R/Rstudio assessment"
+
+# question 3.1 the sum of all intergers between 5 and 55
+# the integers between 5 and 55 are the integers starting with 6 and end with 65 and all the interges in betwee
+#the intergers 5 and 55 are not included
+
+```{R question 3.1}
+sum(6:54)
+```
+
+# question 3.2 write a function sumfun that sum of all intergers between 5 and n
+```{R question 3.2}
+sumfun <- function(x,n){sum(x:n)-x-n}
+sumfun(5,10)
+sumfun(5,20)
+sumfun(5,100)
+```
+
+
+# Question 3.4 mtcars dataset, ggplot2 R setup
+```{R question 3.4 R setup}
+install.packages("ggplot2")
+library("ggplot2")
+```
+
+
+# Question 3.4 mtcars dataset, ggplor
+```{R question 3.4}
+View(mtcars)
+gear <- as.factor(mtcars$gear)
+ggplot(data = mtcars, aes(x=gear, y=mpg))+geom_boxplot(width=0.5,lwd=1, aes(fill=as.factor(gear)))
+```
+
+# Question 3.5 cars dataset, function lm
+# recall cars dataset firsst then draw a summary to understand
+```{R question 3.5}
+View(cars)
+summary(cars)
+m.1 <- lm(cars$dist~cars$speed)
+summary(m.1)
+```
+
+# Question 3.5 ggplot to plot the data points
+```{R question 3.5}
+ggplot(data = cars, aes(x=speed, y=dist)) + geom_point()
+```
+#Question 3.5 answers
+#	Slope: 3.9324
+#	Intercept: -17.5791
+#	Standard errors
+#	standard errors for Slope:0.4155
+#	standard errors for Intercept: 6.7584
+#	Units used
+#	Speed: mph
+#	Distance: feet
+
+#Question 3.6 ggplot ot plot data with linear fit
+```{R question 3.6}
+ggplot(data = cars, aes(x=speed, y=dist)) + geom_point()+geom_smooth(method = "lm",formula = "y~x")
+```
+
+# Quesetion 3.7
+# set a new object sqrspeed
+```{R question 3.7}
+sqrspeed <- sapply(cars$speed, function(speed) speed^2)
+summary(cars$speed)
+summary(sqrspeed)
+```
+# use lm to derive regression distance~sqrspeed
+```{R question 3.7}
+m.2 <- lm(cars$dist~sqrspeed)
+summary(m.2)
+```
+#ggplot data
+```{R question 3.7}
+ggplot(data = cars, aes(x=sqrspeed, y=dist)) + geom_point()+geom_smooth(method = "lm",formula = "y~x")
+```
+# the intercept of the m.2 8.86 feet assumed as thinking distance
+# thinking distance = average speed x time
+# average speed is 15.4mph
+```{R question 3.7}
+mean(cars$speed)
+```
+
+# convert average speed mph to feet/second
+```{R question 3.7}
+"average speed in feet/secs" <- mean(cars$speed)*1.4666667
+`average speed in feet/secs`
+```
+# thinking distance = average speed x time
+# average reaction time (s)= thinking distance/average speed(feet/seconds)
+```{R question 3.7}
+"average reaction time" <- 8.86/(`average speed in feet/secs`)
+`average reaction time`
+```
+# average reaction time is 0.39 seconds
+
+
+# Task "RNA-seq assessment"
+# change directory
+```{R question r sepup}
+knitr::opts_knit$set(root.dir = "C:/Users/E J KIM/Documents/MSc/Advanced bioinformatics/R assignment/AdvancedBioinformaticsR_Assignment/LMS_RNAseq_short-master-2023-final/course/exercises/data")
+```
+# install necessary packages 
+```{R question RNA-seq}
+BiocManager::install("DEseq2")
+library("DESeq2")
+```
+#install necessary packages
+```{R question RNA-seq}
+BiocManager::install("goseq")
+library("goseq")
+```
+
+#install necessary packages
+```{R question RNA-seq}
+BiocManager::install("RColorBrewer")
+library("RColorBrewer")
+```
+
+#install necessary packages
+```{R question RNA-seq}
+BiocManager::install("pheatmap")
+library("pheatmap")
+```
+
+#Read in exercise_counts, View and understand dimension
+```{R question 3.8}
+exercise1_counts <- read.csv("exercise1_counts.csv", header = TRUE)
+View(exercise1_counts)
+dim(exercise1_counts)
+```
+
+#Read in exercise1_sample_description.info, View and understand dimension
+```{R question 3.8}
+exercise1_sample_description.info <- read.table("exercise1_sample_description.info", header = TRUE)
+View(exercise1_sample_description.info)
+dim(exercise1_sample_description.info)
+```
+
+
+#Prepare DESeq2 dataset object
+#replace rwo names of "exercise1_coutns" with enterz_id
+```{R question 3.9}
+rownames(exercise1_counts) <- paste(exercise1_counts$entrez_id, sep = "")
+```
+
+#remove enterez_id column from exercise1_counts
+#This step required to construct co_data
+#as the column of exercise1_counts is 10
+#and the rwo of sample description info is 9
+```{R question 3.9}
+exercise1_counts <- exercise1_counts[,-1]
+```
+
+# 3.9 creat col_data and check dimensions
+#I have selected filename as the Sample
+#because the filename is the closes to the column names of the exercise1_counts
+```{R question 3.9}
+col_data <- data.frame(Sample=exercise1_sample_description.info$filename, Group=exercise1_sample_description.info$condition, Batch=exercise1_sample_description.info$batch)
+View(col_data)
+```
+
+# 3.9 store data as factors & 
+```{R question 3.9}
+col_data$Sample <- as.factor(col_data$Sample)
+col_data$Group <- as.factor(col_data$Group)
+col_data$Batch <- as.factor(col_data$Batch)
+```
+
+# 3.9 check dimensions
+```{R question 3.9}
+all(colnames(exercise1_counts) == exercise1_sample_description.info$Sample)
+```
+
+#construct DESeqDataSet object
+```{R question 3.10}
+library("DESeq2")
+DESeqDataSet <- DESeqDataSetFromMatrix(countData = exercise1_counts, colData = col_data, design=~Group)
+```
+
+#apply DESeq normalization
+```{R question 3.10}
+DESeqDataSet <- DESeq(DESeqDataSet)
+```
+
+#Regularized log transformation
+```{R question 3.11}
+rld <- rlog(DESeqDataSet)
+class(DESeqDataSet)
+```
+
+
+#Variance Stabilizing Transformation
+```{R question 3.11}
+vsd <- varianceStabilizingTransformation(DESeqDataSet)
+class(DESeqDataSet)
+```
+
+#Load heat map library
+```{R question 3.12 setup}
+library("pheatmap")
+```
+
+# Get dds normalized counts
+```{R question 3.12}
+DESeqDataSet_counts <- counts(DESeqDataSet, normalized = TRUE)
+View(DESeqDataSet_counts)
+head(DESeqDataSet_counts)
+```
+
+# Get normalized counts - 40 higher values
+```{R question 3.12}
+select_40 <- order(rowMeans(DESeqDataSet_counts), decreasing = TRUE)[1:40]
+head(select_40)
+```
+
+#Heatmap of the rlog transformed data but just select object (40 higher values chosen above)
+```{R question 3.12}
+pheatmap(assay(rld)[select_40, ])
+```
+#Heatmap of the vst transformed data but just select object (40 higher values chosen above)
+```{R question 3.12}
+pheatmap(assay(vsd)[select_40, ])
+```
+
+#Sample Distance Matrix using rlog transformed data
+```{R question 3.13}
+sample_dist <- dist(t(assay(rld)))
+class(sample_dist)
+```
+
+#Get SDM in matrix form
+```{R question 3.13}
+sdm <- as.matrix(sample_dist)
+class(sdm)
+```
+
+#load library
+```{R question 3.13}
+library("RColorBrewer")
+```
+
+#Add row names for clear plot
+```{R question 3.13}
+rownames(sdm) <- rld$Group
+colnames(sdm) <- NULL
+```
+
+#Add colors
+```{R question 3.13}
+colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
+```
+#plot heatmap
+```{R question 3.12}
+pheatmap(sdm, clustering_distance_rows = sample_dist, clustering_distance_cols = sample_dist, col = colors)
+```
+
+#generate the SDM using variance stabilizing transformation data
+```{R question 3.12}
+sample_dist_vsd <- dist(t(assay(vsd)))
+class(sample_dist_vsd)
+sdm_vsd <- as.matrix(sample_dist_vsd)
+rownames(sdm_vsd) <- vsd$Group
+colnames(sdm_vsd) <- NULL
+colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
+pheatmap(sdm_vsd, clustering_distance_rows = sample_dist_vsd, clustering_distance_cols = sample_dist_vsd, col = colors)
+```
+
+# Principal Component Analysis on the rld transformed data
+```{R question 3.14}
+plotPCA(rld, intgroup = "Group")
+```
+# the significance of the first 
+
+#principal component analysis VST
+```{R question 3.15}
+plotPCA(vsd, intgroup = "Group")
+```
+
+#ChIP-seq
+```{R question r sepup}
+knitr::opts_knit$set(root.dir = "C:/Users/E J KIM/Documents/MSc/Advanced bioinformatics/R assignment/AdvancedBioinformaticsR_Assignment/LMS_ChIPseq_short-master-2023-final/LMS_ChIPseq_short-master-2023-final/course")
+```
+
+
+#ChIP-seq
+```{R question r sepup}
+library("GenomicRanges")
+library("ChIPQC")
+library("DESeq2")
+library("goseq")
+library("org.Mm.eg.db")
+library("biomaRt")
+```
+#Read in the two Myc Mel peakset
+
+```{R question 3.16}
+firstPeakSet <- ChIPQC:::GetGRanges("C:/Users/E J KIM/Documents/MSc/Advanced bioinformatics/R assignment/AdvancedBioinformaticsR_Assignment/LMS_ChIPseq_short-master-2023-final/LMS_ChIPseq_short-master-2023-final/course/data/MacsPeaks//mycmelrep1_peaks.xls", sep="\t", simple=F)
+secondPeakSet <- ChIPQC:::GetGRanges("C:/Users/E J KIM/Documents/MSc/Advanced bioinformatics/R assignment/AdvancedBioinformaticsR_Assignment/LMS_ChIPseq_short-master-2023-final/LMS_ChIPseq_short-master-2023-final/course/data/MacsPeaks//mycmelrep2_peaks.xls", sep="\t", simple=F)
+```
+
+```{R question 3.16}
+firstPeakSet
+secondPeakSet
+```
+
+```{R question 3.16}
+length(firstPeakSet)
+length(secondPeakSet)
+```
+
+```{R question 3.16}
+firstANDsecondPeakSets <- firstPeakSet[firstPeakSet%over%secondPeakSet]
+firstANDsecondPeakSets
+```
+
+```{R question 3.16}
+length(firstANDsecondPeakSets)
+```
+
+```{R question 3.16}
+secondANDfirstPeakSets <- secondPeakSet[secondPeakSet %over% firstPeakSet]
+length(secondANDfirstPeakSets)
+```
+
+```{R question 3.17}
+foldEnrichment_first <- firstPeakSet$fold_enrichment
+foldEnrichment_second <- secondPeakSet$fold_enrichment
+foldEnrichment_firstANDsecondPeakSets <- firstANDsecondPeakSets$fold_enrichment
+foldEnrichment_secondANDfirstPeakSets <- secondANDfirstPeakSets$fold_enrichment
+```
+
+```{R question 3.17}
+foldEnrichment_first [1:10]
+foldEnrichment_second [1:10]
+foldEnrichment_firstANDsecondPeakSets [1:10]
+foldEnrichment_secondANDfirstPeakSets [1:10]
+```
+
+```{R question 3.17}
+order(firstANDsecondPeakSets$fold_enrichment, decreasing = TRUE)[1:500]
+```
+
+```{R question 3.17}
+firstANDsecondPeakSets <- resize(firstANDsecondPeakSets,200,fix = "center")
+firstANDsecondPeakSets[1:6]
+```
+
+```{R question 3.17}
+allPeaks <- c(firstPeakSet,secondPeakSet)
+allPeaksReduced <- reduce(allPeaks)
+length(allPeaks)
+length(allPeaksReduced)
+```
+
+```{R question 3.17}
+commonPeaks <- allPeaksReduced[allPeaksReduced %over% firstPeakSet 
+                               & allPeaksReduced %over% secondPeakSet]
+length(commonPeaks)
+```
+
+```{R question 3.17}
+commonPeaks_GR <- GRanges(seqnames = commonPeaks[,"chr"], IRanges(commonPeaks[,"start"], commonPeaks[,"end"]))
+mcols(commonPeaks) <- commonPeaks[,c("abs_summit","fold_enrichment")]
+```
